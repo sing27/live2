@@ -129,4 +129,6 @@ dmypy.json
 .pyre/
 
 ####
-**.json
+Key.json
+requirements.txt
+static/temporary

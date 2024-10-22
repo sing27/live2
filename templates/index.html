@@ -9,8 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=menu" />
 
     <script src="https://cdn.webrtc-experiment.com/RecordRTC.js"></script>
+
     <script src="/static/js/live2dcubismcore.min.js"></script>
     <script src="/static/js/live2d.min.js"></script>
     <script src="/static/js/pixi.min.js"></script>
@@ -45,17 +47,20 @@
 
     </ul>
 </div>
-<a class="btn"></a>    
+<!-- <a class="btn"></a>     -->
+<a class="material-symbols-outlined">
+    menu
+</a>
 
 
 
 <script type="text/javascript">
-    $('.btn').on('click',function () {
+    $('.material-symbols-outlined').on('click',function () {
         $('.sidebar').toggleClass('side');
     })
     $(document).on('click', function(event) {
     var sidebar = $('.sidebar');
-    var button = $('.btn');
+    var button = $('.material-symbols-outlined');
 
     // 如果点击的元素不是侧边栏和按钮，则关闭侧边栏
     if (!sidebar.is(event.target) && sidebar.has(event.target).length === 0 && !button.is(event.target)) {
