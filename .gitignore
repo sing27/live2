@@ -129,6 +129,10 @@ dmypy.json
 .pyre/
 
 ####
-Key.json
 requirements.txt
 static/temporary
+mock_chat_llm.py
+hardcodequestion.py
+
+gcp_cred*.json
+/chat_data

@@ -2,10 +2,11 @@ from google.cloud import speech
 
 
 
-STT_CLIENT = speech.SpeechClient.from_service_account_file('Key.json')
+# STT_CLIENT = speech.SpeechClient.from_service_account_file('gcp_cred-Key.json')
 
-def speech_to_text(wav): # file_name
+def speech_to_text(credentials, wav): # file_name
 
+    STT_CLIENT = speech.SpeechClient(credentials=credentials)
     # with open(file_name, 'rb') as f:
     #     wav = f.read()
     #     print("$" * 100)
