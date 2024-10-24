@@ -66,26 +66,37 @@ def get_image():
     try:
 
         imageData = request.json.get('imageData')
-        requestMessage = request.json.get('message')
-
+        requestMessage = request.json.get('message') or []
+        chat_id = request.json.get("chatId") or str(uuid.uuid4())
+        print(requestMessage,chat_id)
+        
+        chatLLM = ChatLLM(
+            credentials=credentials,
+            chatId=chat_id
+        )
+        
         # hardcode qusestion
-        my_dict = CustomDict()
-        responsess = my_dict.get_value(requestMessage)
+        # my_dict = CustomDict()
+        # responsess = my_dict.get_value(requestMessage)
 
-        if responsess == True:
-            print(f"Response: {responsess}")
-            audio = googleTTS.speak(responsess)
-            response.data = json.dumps(
-                {"message": responsess, "ttsAudio": audio})
-            print("& " * 50)
-            return response
+        # if responsess == True:
+        #     print(f"Response: {responsess}")
+        #     audio = googleTTS.speak(responsess)
+        #     response.data = json.dumps(
+        #         {"message": responsess, "ttsAudio": audio})
+        #     print("& " * 50)
+        #     return response
 
         # real chatbot
         if requestMessage is not None and imageData is None:  # TODO: text only call
-            print("*" * 80)
+            print("$ " * 80)
             print(requestMessage)
-            text = googleTTS.onlytext(requestMessage)
+            imageData = []
+            # text = googleTTS.onlytext(requestMessage)
+            responses = chatLLM.new_message(requestMessage, imageData)
             response.status_code = 200
+            print(responses.content.text)
+            print("& " * 80)
             # response.data = json.dumps({"message": text})
             # return response
         elif requestMessage is not None and imageData is not None:
