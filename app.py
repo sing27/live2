@@ -121,5 +121,6 @@ def a():
     return jsonify({'response': responses.content.text})
 
 if __name__ == '__main__':
-    # app.run(host="0.0.0.0", port=5000)
-      app.run(debug=True)
+    #  app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, ssl_context=('server.crt', 'server.key'))
+    #  app.run(debug=True)

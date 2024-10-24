@@ -81,6 +81,13 @@
 
 }
 
+#address{
+    float: right;
+    padding: 0 10px;
+    margin-top: 16px;
+    color: hsl(40, 27%, 55%)
+}
+
 .btn:before {
     content: '\f20d';
 }

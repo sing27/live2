@@ -13,7 +13,7 @@ const uploadForm = document.getElementById('uploadForm');
 let userMessage = null;
 let isResponseGenerating = false;
 let videoresult = null;
-let testsssss = null;
+let multimedia = [];
 
 window.addEventListener('load', () => {
     sessionStorage.clear(); // 清除 sessionStorage
@@ -84,7 +84,8 @@ const generateAPIResponse = async (incomingMessageDiv, query_text) =>    // gene
 {
     const textElement = incomingMessageDiv.querySelector(".text");
   
-        const VideoData = (videoresult != null) ? videoresult : sessionStorage.getItem("image_data") || null;
+        // const VideoData = (videoresult != null) ? videoresult : sessionStorage.getItem("image_data") || null;
+        const VideoData = multimedia;
         console.log(VideoData)
 
         const response01 = await fetch('/chat_api', {  
@@ -95,7 +96,8 @@ const generateAPIResponse = async (incomingMessageDiv, query_text) =>    // gene
             body: JSON.stringify({
                 'chatId': 'abc', // place holder
                 'message': query_text,
-                'imageData': [VideoData] // image have
+                'imageData': VideoData, // image have
+                'location' : "temp"
             })
         });
 
@@ -115,8 +117,9 @@ const generateAPIResponse = async (incomingMessageDiv, query_text) =>    // gene
 
         incomingMessageDiv.classList.remove("loading");
         sessionStorage.removeItem('image_data');
-        videoresult = null;
-        userMessage = null;
+        videoresult,userMessage = null;
+        multimedia = [];
+        console.log("reset sessionStorage, videoresult, userMessage, multimedia = []")
         chatList.scrollTop = chatList.scrollHeight;
         return
 }
@@ -174,91 +177,73 @@ suggestions.forEach(suggestion => {
 });
 
 // RecordRTC
-let recorder;
-let stream;
-let recordedBlob;
+let mediaRecorder;
+let audioChunks = [];
 let isRecording = false;  // 用来判断当前是否正在录音
 // deleteChatButton.onclick = function() 
-sttButton.addEventListener("click", async () => {    // STT
+
+
+sttButton.onclick = async () => {    // STT  //sttButton.addEventListener("click", async () => {  
 
     if (!isRecording) {
         // 开始录音
-        let mediaOptions = {
-            audio: {
-                tag: "audio",
-                type: "audio/wav",
-                ext: ".wav",
-                category: { audio: true, video: false }
-            }
-        };
-
         try {
-            stream = await navigator.mediaDevices.getUserMedia(mediaOptions.audio.category);
-            recorder = new RecordRTC(stream, {
-                type: 'audio',
-                mimeType: 'audio/wav',
-                recorderType: RecordRTC.MediaStreamRecorder,
-                numberOfAudioChannels: 2,
-                desiredSampRate: 16000,
-                audioBitsPerSecond: 128000
-            });
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            sttButton.style.backgroundColor = "#f44336";
+            mediaRecorder = new MediaRecorder(stream);
 
-            recorder.startRecording();
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // 使用 webm 格式
+                audioChunks = []; // 清空数据块
+
+                // 将 Blob 转换为 Base64
+                const reader = new FileReader();
+                reader.onloadend = async () => {
+                    const base64data = reader.result;
+
+                    // 发送音频数据到后端
+                    const response = await fetch('/stt', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ audioData: base64data })
+                    });
+
+                    const result = await response.json();
+                    userMessage = result.message
+                    console.log(result.message);
+
+                    userdiv();
+
+                    showLoadingAnimation(userMessage);
+                    sttButton.style.backgroundColor = "#383838";
+                };
+                reader.readAsDataURL(audioBlob); // 转换为 Base64
+
+                stream.getTracks().forEach(track => track.stop());
+
+            };
+
+            mediaRecorder.start();
             console.log("开始录音...");
             isRecording = true;
-            sttButton.style.backgroundColor = "#f44336";  // 红色按钮表示正在录音
+            sttButton.classList.add('recording'); // 添加正在录音的样式
+
         } catch (error) {
             console.error("无法获取音频流", error);
         }
     } else {
         // 停止录音
-        try {
-            await recorder.stopRecording(); // 确保录音停止
-
-
-
-            recordedBlob = recorder.getBlob();
-            console.log("录音停止，音频已生成");
-
-            // 停止音频流
-            stream.getTracks().forEach(track => track.stop());
-
-            // 将 Blob 转换为 Base64 并存储到 sessionStorage
-            await recorder.getDataURL(async (dataURL) => {
-                if (dataURL) {
-                    await sessionStorage.setItem('audio_data', dataURL);
-                    console.log("音频已保存到 sessionStorage");
-                    //
-                    const sstresponse = await fetch('/stt', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            'audioData': sessionStorage.getItem("audio_data")
-                        })
-                    });
-                    const sstresult = await sstresponse.json();
-                    userMessage = sstresult.message
-                    console.log(userMessage)
-
-                    userdiv();
-
-                    sessionStorage.removeItem("audio_data")
-                    showLoadingAnimation(userMessage);
-
-                }
-            });
-
-            await stream.getTracks().forEach(track => track.stop());
-
-            isRecording = false;
-            sttButton.style.backgroundColor = "#383838";
-        } catch (error) {
-            console.error("录音停止失败", error);
-        }
+        mediaRecorder.stop();
+        console.log("录音停止");
+        isRecording = false;
     }
-});
+};
 
 
 
@@ -280,9 +265,9 @@ typingForm.addEventListener("submit", (e) => {
 const fileInput = document.getElementById('file_upload');
 
 uploadForm.onsubmit = (async (event) => { 
-    event.preventDefault(); // 阻止默认提交
+    event.preventDefault(); // 阻止默認提交
     if (!fileInput.files.length) {
-    alert("我入到黎 又冇圖? Link又冇?"); // 提示用户
+    alert("我入到黎 圖又冇? Link又冇?"); // 提示用户
     return;
 }
     userdiv();
@@ -298,6 +283,7 @@ fileInput.addEventListener('change', function () {
         reader.onload = function (evt) {
             videoresult = evt.target.result
             const result = evt.target.result;
+            multimedia.push(evt.target.result);
             if (result && result.startsWith("data:video/")) {
                 const videoURL = URL.createObjectURL(file); // 創建視頻的臨時 URL
                 sessionStorage.setItem('image_data', videoURL); // 將 URL 存儲到 sessionStorage
@@ -344,4 +330,61 @@ const userdiv = () => {
     chatList.scrollTo(0, chatList.scrollHeight);
     document.body.classList.add("hide-header");
 
+};
+
+
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+
+            getAddressFromCoordinates(latitude, longitude);
+        },
+        (error) => {
+            handleLocationError(error);
+        }
+    );
+} else {
+    alert("瀏覽器不支持地理定位。");
+};
+
+
+function getAddressFromCoordinates(lat, lng) {
+    // 使用 Google Maps Geocoding API
+    const apiKey = ''; // API KEY
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'OK') {
+                console.log(data)
+                const address = data.results[6].formatted_address; // 获取地址
+                document.getElementById('address').innerHTML = `用戶所在位置: ${address}`;
+            } else {
+                document.getElementById('address').innerHTML = '未能找到地址信息';
+            }
+        })
+        .catch(error => {
+            console.error('獲取地址時出錯:', error);
+        });
+};
+
+
+function handleLocationError(error) {
+    switch (error.code) {
+        case error.PERMISSION_DENIED:
+            document.getElementById('address').innerHTML = `用戶拒絕提供地理位置`;
+            break;
+        case error.POSITION_UNAVAILABLE:
+            alert("位置信息不可用。");
+            break;
+        case error.TIMEOUT:
+            alert("timeout。");
+            break;
+        case error.UNKNOWN_ERROR:
+            alert("unknow error。");
+            break;
+    }
 };

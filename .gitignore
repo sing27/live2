@@ -136,3 +136,6 @@ hardcodequestion.py
 
 gcp_cred*.json
 /chat_data
+/test
+server.crt
+server.key
