@@ -72,7 +72,7 @@ def get_image():
         my_dict = CustomDict()
         responsess = my_dict.get_value(requestMessage)
 
-        if responsess:
+        if responsess == True:
             print(f"Response: {responsess}")
             audio = googleTTS.speak(responsess)
             response.data = json.dumps(
@@ -109,7 +109,7 @@ def get_image():
 
         print("3:" + text)
         # audio = googleTTS.speak(text)
-        # response.data = json.dumps({"message": text, "ttsAudio": audio})
+        response.data = json.dumps({"message": text, "ttsAudio": "audio"})
         print("! " * 60)
         return response
 
@@ -144,4 +144,4 @@ def a():
     return jsonify({'response': responses.content.text})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(debug=True)

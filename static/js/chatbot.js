@@ -36,7 +36,7 @@ const loadLocalstorageData = () => {
 
 }
 
-// loadLocalstorageData();
+loadLocalstorageData();
 
 
 const createMessageElement = (content, ...classes) => {

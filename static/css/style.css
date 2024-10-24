@@ -61,6 +61,9 @@ body{
   width: 100%;
   background: var(--primary-color) ;
   overflow-y: hidden;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* phone */
   /* text-shadow: 4px 4px 4px #aaa; */
 }
 
@@ -126,7 +129,7 @@ body.hide-header #hello2{
   position: absolute;
   top: 75px;
   left: 45%;
-  color: #ffffff;
+  /* color: #ffffff; */
   font-size: 18px;
 }
 
@@ -324,8 +327,6 @@ body.hide-header #hello2{
   padding: 1rem;
   background-color: var(--primary-color);
 
-  
-
 }
 
 .typing-area :where(.typing-form, .action-buttons)
@@ -443,7 +444,7 @@ body.hide-header #hello2{
   color: rgba(0, 0, 0, .45);
   font-size: 11px;
   display: inline-block;
-  margin-left: -15px;
+  margin-left: -15px; /* -15px */
   margin-block-start: auto;
   white-space: nowrap;
 }
@@ -453,5 +454,58 @@ body.hide-header #hello2{
       width: 100%; /* 或者其他适合手机的宽度 */
   }
 }
+
+@media screen and (max-width: 450px) {
+  #hello2 {
+    position: absolute;
+    top: 65px;
+    left: 5%;
+  }
+
+  .title{
+    font-size: 2.3rem
+  }
+
+  .subtitle {
+    font-size: 1.6rem
+  }
+
+  #c2 {
+    left: 3%;
+  }
+  
+
+  .chat-list .message {
+    display: flex;
+    margin: 15px 0; 
+  }
+
+  .chat-list .message .message-content {
+    gap: 0.8rem;
+    max-width: 95%;
+  }
+
+  .time,.chattime {
+    margin-left: -8px;
+  }
+
+  #delete-chat-button{
+    display: none;
+  }
+
+  .typing-area .icon{
+    height: 56px;
+    width: 56px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--secondary-color);
+  
+  }
+
+}
+
 
 

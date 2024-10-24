@@ -1,0 +1,5 @@
+#canvas {
+    width: 100vw;  /* 使用全宽 */
+    height: 100vh; /* 使用全高 */
+    display: block; /* 避免出现间隙 */
+}
