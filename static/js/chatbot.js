@@ -95,7 +95,7 @@ const generateAPIResponse = async (incomingMessageDiv, query_text) =>    // gene
             body: JSON.stringify({
                 'chatId': 'abc', // place holder
                 'message': query_text,
-                'imageData': VideoData // image have
+                'imageData': [VideoData] // image have
             })
         });
 

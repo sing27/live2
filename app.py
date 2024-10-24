@@ -65,8 +65,8 @@ def get_image():
 
     try:
 
-        imageData = request.json.get('imageData')
-        requestMessage = request.json.get('message') or []
+        imageData = request.json.get('imageData') or []
+        requestMessage = request.json.get('message')
         chat_id = request.json.get("chatId") or str(uuid.uuid4())
         print(requestMessage,chat_id)
         
@@ -75,48 +75,14 @@ def get_image():
             chatId=chat_id
         )
         
-        # hardcode qusestion
-        # my_dict = CustomDict()
-        # responsess = my_dict.get_value(requestMessage)
-
-        # if responsess == True:
-        #     print(f"Response: {responsess}")
-        #     audio = googleTTS.speak(responsess)
-        #     response.data = json.dumps(
-        #         {"message": responsess, "ttsAudio": audio})
-        #     print("& " * 50)
-        #     return response
-
-        # real chatbot
-        if requestMessage is not None and imageData is None:  # TODO: text only call
-            print("$ " * 80)
-            print(requestMessage)
-            imageData = []
-            # text = googleTTS.onlytext(requestMessage)
-            responses = chatLLM.new_message(requestMessage, imageData)
-            response.status_code = 200
-            print(responses.content.text)
-            print("& " * 80)
-            # response.data = json.dumps({"message": text})
-            # return response
-        elif requestMessage is not None and imageData is not None:
-            print("@ " * 60)
-            imageFormatData, base64ImageData = imageData.split(',')
-            imageFormat = imageFormatData.split('/')[1].split(';')[0]
-
-            # 保存文件
-            unique_filename = f"{int(time.time())}_api-image.{imageFormat}"
-            file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
-            if not os.path.exists(UPLOAD_FOLDER):
-                os.makedirs(UPLOAD_FOLDER)
-            fh = open(file_path, "wb")
-            fh.write(base64.b64decode(base64ImageData))
-            fh.close()
-
-            print("1")
-            text = googleTTS.image(file_path, requestMessage)
-            print("2")
-            # response.data = json.dumps({"message": text})
+        print("$ " * 80)
+        print(requestMessage)
+        # imageData = []
+        # text = googleTTS.onlytext(requestMessage)
+        images = [MessageContentImage.from_uri(img) for img in imageData]
+        responses = chatLLM.new_message(requestMessage, images)
+        response.status_code = 200
+        text = responses.content.text
 
         print("3:" + text)
         # audio = googleTTS.speak(text)
@@ -156,4 +122,4 @@ def a():
 
 if __name__ == '__main__':
     # app.run(host="0.0.0.0", port=5000)
-    app.run(debug=True)
+      app.run(debug=True)
