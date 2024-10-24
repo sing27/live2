@@ -36,7 +36,7 @@ const loadLocalstorageData = () => {
 
 }
 
-loadLocalstorageData();
+// loadLocalstorageData();
 
 
 const createMessageElement = (content, ...classes) => {
@@ -178,7 +178,7 @@ let recorder;
 let stream;
 let recordedBlob;
 let isRecording = false;  // 用来判断当前是否正在录音
-
+// deleteChatButton.onclick = function() 
 sttButton.addEventListener("click", async () => {    // STT
 
     if (!isRecording) {
@@ -275,22 +275,23 @@ typingForm.addEventListener("submit", (e) => {
     e.preventDefault();
     
     handleOutgoingChat();
-})
+});
 
-uploadForm.addEventListener('submit', async (event) => {
+const fileInput = document.getElementById('file_upload');
+
+uploadForm.onsubmit = (async (event) => { 
     event.preventDefault(); // 阻止默认提交
-
+    if (!fileInput.files.length) {
+    alert("我入到黎 又冇圖? Link又冇?"); // 提示用户
+    return;
+}
     userdiv();
-
     uploadModal.style.display = 'none'; // 隐藏弹窗
     uploadForm.reset();
 });
 
-
-
-const fileInput = document.getElementById('file_upload');
-
 fileInput.addEventListener('change', function () {
+    console.log("inputed image")
     const file = this.files[0];
     if (file) {
         const reader = new FileReader();

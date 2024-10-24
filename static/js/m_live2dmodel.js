@@ -35,11 +35,10 @@ const loadModels = async () => {
 
         const scaleX = (innerWidth) / model.width;
         const scaleY = (innerHeight) / model.height;
-
         // fit the window
+        console.log("X: " , scaleX);
+        console.log("Y: " ,scaleY);
         model.scale.set(Math.min(scaleX, scaleY));
-        // model.x = innerWidth * 0.1;
-        // model.y = innerHeight * 0.1;
 
         // 禁用拖动
         model.interactive = true;
@@ -63,11 +62,10 @@ const loadModels = async () => {
     });
 
     // console.log(innerWidth)
-    model4.x = (innerWidth - model4.width) / 2;
-    // // 居中显示
+    model4.x = (innerWidth - model4.width) / 2; // 居中
     // model4.x = (innerWidth - model4.width) / 9;
     // model4.x = window.innerWidth * 0.1; // model4 离左边 10%
-    model4.y = window.innerHeight * 0.2; // 可以根据需要调整 Y 位置
+    model4.y = innerHeight * 0.2; // 调整 Y 位置
 
     model4.on("hit", (hitAreas) => {
         if (hitAreas.includes("Body")) {
