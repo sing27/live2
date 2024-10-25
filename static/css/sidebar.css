@@ -84,8 +84,9 @@
 #address{
     float: right;
     padding: 0 10px;
-    margin-top: 16px;
-    color: hsl(40, 27%, 55%)
+    margin-top: 22px;
+    color: hsl(40, 27%, 55%);
+    font-size: 12px ;
 }
 
 .btn:before {

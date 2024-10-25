@@ -58,16 +58,20 @@ def get_sst():
 
 
 @app.route('/chat_api', methods=['POST'])
-def get_image():
+def get_information():
     response = Response(
         content_type="application/json"
     )
 
     try:
-
+        
         imageData = request.json.get('imageData') or []
         requestMessage = request.json.get('message')
         chat_id = request.json.get("chatId") or str(uuid.uuid4())
+        latitude = request.json.get("latitude") or ""
+        longitude = request.json.get("longitude") or ""
+        localtion = request.json.get("localtion") or ""
+        
         print(requestMessage,chat_id)
         
         chatLLM = ChatLLM(
@@ -97,30 +101,21 @@ def get_image():
         response.data = json.dumps({"message": str(err)})
         return response
 
-
-@app.route('/a', methods=['GET'])
-def a():
-    jsonFile = open('./a.json', 'r')
-    a = json.load(jsonFile)
-
-    message = a.get('message')
-    # images_content = a.get('images')
-    images_content = []
-    chat_id = a.get("chatId") or str(uuid.uuid4())
-
-    chatLLM = ChatLLM(
-        credentials=credentials,
-        chatId=chat_id
+@app.route('/api/geocode', methods=['POST'])
+def get_geocoding():
+    response = Response(
+        content_type="application/json"
     )
-    images = [MessageContentImage.from_uri(img) for img in images_content]
-    responses = chatLLM.new_message(message, images)
-
-    print("- " * 50)
-    print(responses.content.text)
-
-    return jsonify({'response': responses.content.text})
+    latitude = request.json.get("latitude") or ""
+    longitude = request.json.get("longitude") or ""
+    
+    geocode_result = googleTTS.geocoding(latitude, longitude)
+    
+    response.data = json.dumps({"localtion": geocode_result})
+    
+    return response
 
 if __name__ == '__main__':
-    #  app.run(host="0.0.0.0", port=5000)
-    app.run(host="0.0.0.0", port=5000, ssl_context=('server.crt', 'server.key'))
-    #  app.run(debug=True)
+    #app.run(host="0.0.0.0", port=5000)
+    #app.run(host="0.0.0.0", port=5000, ssl_context=('server.crt', 'server.key'))
+    app.run(debug=True)

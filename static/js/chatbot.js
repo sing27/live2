@@ -14,6 +14,9 @@ let userMessage = null;
 let isResponseGenerating = false;
 let videoresult = null;
 let multimedia = [];
+let latitude = "";
+let longitude = "";
+let userlocation = "";
 
 window.addEventListener('load', () => {
     sessionStorage.clear(); // 清除 sessionStorage
@@ -83,45 +86,47 @@ const generateAPIResponse = async (incomingMessageDiv, query_text) =>    // gene
 
 {
     const textElement = incomingMessageDiv.querySelector(".text");
-  
-        // const VideoData = (videoresult != null) ? videoresult : sessionStorage.getItem("image_data") || null;
-        const VideoData = multimedia;
-        console.log(VideoData)
 
-        const response01 = await fetch('/chat_api', {  
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
+    // const VideoData = (videoresult != null) ? videoresult : sessionStorage.getItem("image_data") || null;
+    const VideoData = multimedia;
+    console.log(VideoData)
+
+    const response01 = await fetch('/chat_api', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            'message': query_text,
+            'imageData': VideoData, // image have
+            'context': {
                 'chatId': 'abc', // place holder
-                'message': query_text,
-                'imageData': VideoData, // image have
-                'location' : "temp"
-            })
-        });
+                'location': `${latitude},${longitude}` // image have
+            }
+        })
+    });
 
-        const result01 = await response01.json();
-        const imageoutput = result01.message
-        console.log(imageoutput)
-        const audioOutput = result01.ttsAudio // !! 
+    const result01 = await response01.json();
+    const imageoutput = result01.message
+    console.log(imageoutput)
+    const audioOutput = result01.ttsAudio // !! 
 
-        await speakAndTypeResponse({
-            imageoutput: imageoutput,
-            textElement: textElement,
-            incomingMessageDiv: incomingMessageDiv,
-        }, {
-            model: model4,
-            audioText: audioOutput  // !!
-        });
+    await speakAndTypeResponse({
+        imageoutput: imageoutput,
+        textElement: textElement,
+        incomingMessageDiv: incomingMessageDiv,
+    }, {
+        model: model4,
+        audioText: audioOutput  // !!
+    });
 
-        incomingMessageDiv.classList.remove("loading");
-        sessionStorage.removeItem('image_data');
-        videoresult,userMessage = null;
-        multimedia = [];
-        console.log("reset sessionStorage, videoresult, userMessage, multimedia = []")
-        chatList.scrollTop = chatList.scrollHeight;
-        return
+    incomingMessageDiv.classList.remove("loading");
+    sessionStorage.removeItem('image_data');
+    videoresult, userMessage = null;
+    multimedia = [];
+    console.log("reset sessionStorage, videoresult, userMessage, multimedia = []")
+    chatList.scrollTop = chatList.scrollHeight;
+    return
 }
 
 
@@ -161,7 +166,7 @@ const handleOutgoingChat = () => {
 
     isResponseGenerating = true;
 
-    userdiv ();
+    userdiv();
 
     typingForm.reset();
     chatList.scrollTo(0, chatList.scrollHeight);
@@ -249,7 +254,7 @@ sttButton.onclick = async () => {    // STT  //sttButton.addEventListener("click
 
 const getAndPlayAudioFromText = () => { }
 
-deleteChatButton.onclick = function() {
+deleteChatButton.onclick = function () {
     if (confirm("Are you sure you want to delete all messages?"))
         localStorage.removeItem("savedChats");
     loadLocalstorageData();
@@ -258,18 +263,18 @@ deleteChatButton.onclick = function() {
 
 typingForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    
+
     handleOutgoingChat();
 });
 
 const fileInput = document.getElementById('file_upload');
 
-uploadForm.onsubmit = (async (event) => { 
+uploadForm.onsubmit = (async (event) => {
     event.preventDefault(); // 阻止默認提交
     if (!fileInput.files.length) {
-    alert("我入到黎 圖又冇? Link又冇?"); // 提示用户
-    return;
-}
+        alert("我入到黎 圖又冇? Link又冇?"); // 提示用户
+        return;
+    }
     userdiv();
     uploadModal.style.display = 'none'; // 隐藏弹窗
     uploadForm.reset();
@@ -309,7 +314,7 @@ const userdiv = () => {
         usertext = `<p class="usertext">hello</p>`;
     } else if (videoresult !== null) {
         content = `<video controls style="max-width: 80%; max-height: 200px;"><source src="${imageData}" type="video/mp4"></video>`;
-    } else { 
+    } else {
         content = `<img src="${imageData}" style="max-width: 80%; max-height: 200px;">`;
     }
 
@@ -322,53 +327,61 @@ const userdiv = () => {
     </div>
     <script>chatbotimage.reset()</script>`;
 
-    
+
     const outgoingMessageDiv = createMessageElement(html, "outgoing");
     console.log(userMessage);
-    if (usertext != "") {outgoingMessageDiv.querySelector(".usertext").innerText = userMessage; }
+    if (usertext != "") { outgoingMessageDiv.querySelector(".usertext").innerText = userMessage; }
     chatList.appendChild(outgoingMessageDiv);
     chatList.scrollTo(0, chatList.scrollHeight);
     document.body.classList.add("hide-header");
 
 };
 
-
 if (navigator.geolocation) {
+
+    var options = {
+        enableHighAccuracy: true,
+        maximumAge: 30000,
+        timeout: 27000
+    };
+
     navigator.geolocation.getCurrentPosition(
         (position) => {
-            const latitude = position.coords.latitude;
-            const longitude = position.coords.longitude;
-
+            latitude = position.coords.latitude;
+            longitude = position.coords.longitude;
+            console.log(latitude)
             getAddressFromCoordinates(latitude, longitude);
         },
         (error) => {
             handleLocationError(error);
-        }
+        },
+        options // 传入选项
     );
+
 } else {
     alert("瀏覽器不支持地理定位。");
 };
 
 
-function getAddressFromCoordinates(lat, lng) {
-    // 使用 Google Maps Geocoding API
-    const apiKey = ''; // API KEY
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`;
 
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'OK') {
-                console.log(data)
-                const address = data.results[6].formatted_address; // 获取地址
-                document.getElementById('address').innerHTML = `用戶所在位置: ${address}`;
-            } else {
-                document.getElementById('address').innerHTML = '未能找到地址信息';
-            }
+const getAddressFromCoordinates = async (lat, lng) => {
+    // 使用 Google Maps Geocoding API
+
+    const addressResponse = await fetch('/api/geocode', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            'latitude': lat,
+            'longitude': lng
         })
-        .catch(error => {
-            console.error('獲取地址時出錯:', error);
-        });
+    });
+
+    const result = await addressResponse.json();
+    addressoutput = result.localtion
+    console.log(addressoutput)
+    document.getElementById('address').innerHTML = `用戶位置: ${addressoutput}`
 };
 
 

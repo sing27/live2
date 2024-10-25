@@ -4,12 +4,14 @@ import google.generativeai as genai
 import os
 import time
 import dotenv
+import requests
 
 import base64
 
 dotenv.load_dotenv()
 
 genai.configure(api_key=os.environ['GOOGLE_API_KEY'])
+map_apiKey = os.environ['GOOGLE_MAP_API_KEY']
 
 
 class GoogleTTS:
@@ -48,29 +50,21 @@ class GoogleTTS:
         ans = response.text
         return ans
     
-    def image(self, newfile_path, text_message):
-        sample_file = genai.upload_file(path=newfile_path,
-                            display_name="Vision_Question")
-        
-        print("Uploaded file... Text : " + text_message)
-        file = genai.get_file(name=sample_file.name)
-        print(f"Retrieved file '{file.display_name}' as: {sample_file.uri}")
-
-        while sample_file.state.name == "PROCESSING":
-            print('.', end='')
-            time.sleep(5)
-            sample_file = genai.get_file(sample_file.name)
-
-        if sample_file.state.name == "FAILED":
-            raise ValueError(sample_file.state.name)
-        
-        response = self.model.generate_content([sample_file, text_message])
-
-        imagemessage = response.text
-
-        print(response.text)
-        
-        return imagemessage
+    def geocoding(self, latitude, longitude):
+        url = f"https://maps.googleapis.com/maps/api/geocode/json?language=zh-HK&latlng={latitude},{longitude}&key={map_apiKey}"
+        print(url)
+        response = requests.get(url)
+        print(response)
+        if response.status_code == 200:
+            data = response.json()
+            print("Response Data1:", data)
+            
+            localtion = data['results'][0]['formatted_address']
+            print("Response Data2:", localtion)
+            
+        else:
+            print("Error:", response.status_code, response.text)
+        return localtion
 
 
 
