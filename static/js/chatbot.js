@@ -98,10 +98,10 @@ const generateAPIResponse = async (incomingMessageDiv, query_text) =>    // gene
         },
         body: JSON.stringify({
             'message': query_text,
-            'imageData': VideoData, // image have
+            'imageData': VideoData,
             'context': {
                 'chatId': 'abc', // place holder
-                'location': `${latitude},${longitude}` // image have
+                'location': `${latitude},${longitude}` 
             }
         })
     });
@@ -373,8 +373,7 @@ const getAddressFromCoordinates = async (lat, lng) => {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            'latitude': lat,
-            'longitude': lng
+            'location': `${lat},${lng}` 
         })
     });
 

@@ -65,14 +65,14 @@ def get_information():
 
     try:
         
-        imageData = request.json.get('imageData') or []
-        requestMessage = request.json.get('message')
-        chat_id = request.json.get("chatId") or str(uuid.uuid4())
+        imageData = request.json.get("imageData") or []
+        requestMessage = request.json.get("message")
+        chat_id = request.json.get("context", {}).get("chatid") or str(uuid.uuid4())
+        lat_lon = request.json.get("context", {}).get("location") or str(uuid.uuid4())
         latitude = request.json.get("latitude") or ""
         longitude = request.json.get("longitude") or ""
         localtion = request.json.get("localtion") or ""
         
-        print(requestMessage,chat_id)
         
         chatLLM = ChatLLM(
             credentials=credentials,
@@ -81,14 +81,13 @@ def get_information():
         
         print("$ " * 80)
         print(requestMessage)
-        # imageData = []
-        # text = googleTTS.onlytext(requestMessage)
+        print("1:" + chat_id)
         images = [MessageContentImage.from_uri(img) for img in imageData]
         responses = chatLLM.new_message(requestMessage, images)
         response.status_code = 200
         text = responses.content.text
 
-        print("3:" + text)
+        print("3: " + text)
         # audio = googleTTS.speak(text)
         response.data = json.dumps({"message": text, "ttsAudio": "audio"})
         print("! " * 60)
@@ -106,8 +105,10 @@ def get_geocoding():
     response = Response(
         content_type="application/json"
     )
-    latitude = request.json.get("latitude") or ""
-    longitude = request.json.get("longitude") or ""
+    lat_lon = request.json.get("location") or ""
+
+    latitude = lat_lon.split(",")[0]
+    longitude = lat_lon.split(",")[1]
     
     geocode_result = googleTTS.geocoding(latitude, longitude)
     
