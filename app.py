@@ -1,18 +1,20 @@
 from flask import Blueprint, Flask, request, render_template, redirect, url_for, jsonify, Response
 from flask_cors import CORS
 import time
+import uuid
 import json
 import os
 import base64
 
 from python.NewSTT import speech_to_text
 from gcp_tts import GoogleTTS
-from mock_chat_llm import *
 from http import HTTPStatus
 
-from google.oauth2 import service_account
+from google.oauth2.service_account import Credentials
 from json import load
-from hardcodequestion import CustomDict
+# from hardcodequestion import CustomDict
+
+from chat_llm import ChatLLM, MessageContentImage
 
 
 credentialsFiles = list(filter(lambda f: f.startswith(
@@ -23,6 +25,7 @@ googleTTS = GoogleTTS(credentials)
 
 app = Flask(__name__)
 CORS(app)
+chatLLM = ChatLLM(credentials=credentials)
 
 UPLOAD_FOLDER = 'static/temporary'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -63,42 +66,57 @@ def get_information():
         content_type="application/json"
     )
 
-    try:
-        
-        imageData = request.json.get("imageData") or []
-        requestMessage = request.json.get("message")
-        chat_id = request.json.get("context", {}).get("chatid") or str(uuid.uuid4())
-        lat_lon = request.json.get("context", {}).get("location") or str(uuid.uuid4())
-        latitude = request.json.get("latitude") or ""
-        longitude = request.json.get("longitude") or ""
-        localtion = request.json.get("localtion") or ""
-        
-        
-        chatLLM = ChatLLM(
-            credentials=credentials,
-            chatId=chat_id
-        )
-        
-        print("$ " * 80)
-        print(requestMessage)
-        print("1:" + chat_id)
-        images = [MessageContentImage.from_uri(img) for img in imageData]
-        responses = chatLLM.new_message(requestMessage, images)
-        response.status_code = 200
-        text = responses.content.text
+    Example_Request_Schema = {
+        # Context will directly appeded to str and sent to system
+        "chatId": "some chat id",
+        "context": {
+            "location": "lat, lon",
+            "language": "en"
+        },
+        # message and images will be transformed
+        "content": {
+            "message": "user message",
+            "images": ["data url", "data url", "data url"]
+        }
+    }
 
-        print("3: " + text)
-        # audio = googleTTS.speak(text)
-        response.data = json.dumps({"message": text, "ttsAudio": "audio"})
-        print("! " * 60)
-        return response
+    no_data = {"no": "data"}
+    request_json: dict = request.json or no_data
+    content: dict = request_json.get('content', no_data)
+    context: dict = request_json.get('context', no_data)
+    message = content.get("message", "")
+    images = content.get('images', [])
 
-    except Exception as err:
-        print("error app")
-        print(err)
-        response.status = HTTPStatus.INTERNAL_SERVER_ERROR
-        response.data = json.dumps({"message": str(err)})
-        return response
+    # process context
+    client_context = ""
+    for co in context.keys():
+        client_context += f"{co}: {context[co]}"
+
+    # Expected images is a list of string containing src data url for image
+    images = list(map(
+        lambda img: MessageContentImage.from_uri(img),
+        images
+    ))
+
+    # return response from llm
+    # response.status = HTTPStatus.OK
+    # response.response_content = {
+    #     "chatId": chatLLM.chatId,
+    #     "message": ai_response.content.text,
+    # }
+    # return response
+    # Send to llm
+    chatLLM.chatId = request_json.get('chatId', str(uuid.uuid4()))
+    ai_response = chatLLM.new_message(
+        message=message, images=images, context=client_context)
+
+    # print("3: " + text)
+    # audio = googleTTS.speak(text)
+    response.data = json.dumps(
+        {"message": ai_response.content.text, "ttsAudio": "audio"})
+    print("! " * 60)
+    return response
+
 
 @app.route('/api/geocode', methods=['POST'])
 def get_geocoding():
@@ -109,14 +127,16 @@ def get_geocoding():
 
     latitude = lat_lon.split(",")[0]
     longitude = lat_lon.split(",")[1]
-    
+
     geocode_result = googleTTS.geocoding(latitude, longitude)
-    
+
     response.data = json.dumps({"localtion": geocode_result})
-    
+
     return response
 
+
 if __name__ == '__main__':
-    #app.run(host="0.0.0.0", port=5000)
-    #app.run(host="0.0.0.0", port=5000, ssl_context=('server.crt', 'server.key'))
+    # app.run(host="0.0.0.0", port=5000)
+    # app.run(host="0.0.0.0", port=5000, ssl_context=('server.crt', 'server.key'))
+    print("Starting")
     app.run(debug=True)

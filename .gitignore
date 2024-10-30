@@ -140,3 +140,8 @@ gcp_cred*.json
 server.crt
 server.key
 /chreact
+/llm_tools
+/data
+/chroma_db
+requirements-old.txt
+chat_llm.py

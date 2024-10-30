@@ -52,7 +52,7 @@ class GoogleTTS:
     
     def geocoding(self, latitude, longitude):
         url = f"https://maps.googleapis.com/maps/api/geocode/json?language=zh-HK&latlng={latitude},{longitude}&key={map_apiKey}"
-        print(url)
+        print("Url", url)
         response = requests.get(url)
         print(response)
         if response.status_code == 200:
